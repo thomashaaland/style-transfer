@@ -2,40 +2,42 @@ from tkinter import filedialog
 import tkinter as tk
 import imageStyleTransfer as ist
 
-styleImage = ""
-
-def loadStyle(event = None):
-    global styleImage
-    styleImage = filedialog.askopenfilename()
-    print(styleImage)
-
 def main():
     root = tk.Tk()
-    root.geometry("200x150")
-    frame = tk.Frame(root)
-    frame.pack()
+    root.geometry("350x150")
+    #frame = tk.Frame(root)
+    #frame.pack()
 
-    leftframe = tk.Frame(root)
-    leftframe.pack(side="left")
+    label = tk.Label(root, text = "Image Style Transfer")
+    label.grid(column = 0, row = 0)
 
-    rightframe = tk.Frame(root)
-    rightframe.pack(side="right")
+    # Style loading
+    styleImage = ""
+    styleText = tk.Label(root, height = 1, width = 14, text = styleImage)
+    styleText.grid(column = 1, row = 1)
+    
+    def loadStyle(event = None):
+        styleImage = filedialog.askopenfilename()
+        styleText.configure(text = styleImage)
 
-    label = tk.Label(frame, text = "Image Style Transfer")
-    label.pack()
-
-    loadStyleButton = tk.Button(leftframe, text = "Load Style Image",
+    loadStyleButton = tk.Button(root, text = "Load Style Image",
                                 height = 1, width = 14,
                                 command = loadStyle)
-    loadStyleButton.pack()
+    loadStyleButton.grid(column = 0, row = 1)
 
-    loadContentButton = tk.Button(leftframe, text = "Load Content Image", height = 1, width = 14)
-    loadContentButton.pack()
+    # Content loading
+    contentImage = ""
+    contentText = tk.Label(root, height = 1, width = 14, text = contentImage)
+    contentText.grid(column = 1, row = 2)
 
-    # Displays
-    styleText = tk.Text(rightframe, height = 1, width = 14)
-    styleText.pack()
-    styleText.insert(tk.END, styleImage)
+    def loadContent(event = None):
+        contentImage = filedialog.askopenfilename()
+        contentText.configure(text = contentImage)
+        
+    loadContentButton = tk.Button(root, text = "Load Content Image",
+                                  height = 1, width = 14,
+                                  command = loadContent)
+    loadContentButton.grid(column = 0, row = 2)
     
     root.title("TF Image Style Transfer")
     root.mainloop()
