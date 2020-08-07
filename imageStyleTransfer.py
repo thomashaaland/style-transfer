@@ -26,6 +26,10 @@ def load_img(path_to_img):
     img = img[tf.newaxis, :]
     return img
 
+def toImage(image):
+    if len(image.shape) > 3:
+        return tf.squeeze(image, axis=0)
+
 def imshow(image, title=None):
     if len(image.shape) > 3:
         image = tf.squeeze(image, axis=0)
@@ -113,7 +117,7 @@ class StyleContentModel(tf.keras.models.Model):
 
         return {'content':content_dict, 'style':style_dict}
 
-def main():
+def GPUOn():
     # Turn on gpu computation
     gpus = tf.config.experimental.list_physical_devices('GPU')
     if gpus:
@@ -127,26 +131,14 @@ def main():
         except RuntimeError as e:
             print(e)
 
-    content_path = '/home/thomhaa/Documents/databases/style_transfer/whale/01-whale-gallery.ngsversion.1552406309198.adapt.1900.1.jpg'
-    style_path = '/home/thomhaa/Documents/databases/style_transfer/whale/1280px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg'
-
+def makeImg(content_path, style_path):
+    GPUOn()
+    
     content_image = load_img(content_path)
     style_image = load_img(style_path)
     
-    plt.subplot(1,2,1)
-    imshow(content_image, 'Content Image')
-    
-    plt.subplot(1,2,2)
-    imshow(style_image, 'Style Image')
-    
-    plt.show()
-    
     vgg = tf.keras.applications.VGG19(include_top=False, weights='imagenet')
-    
-    print()
-    for layer in vgg.layers:
-        print(layer.name)
-    
+        
     content_layers = ['block5_conv2']
     
     style_layers = ['block1_conv1',
@@ -159,14 +151,6 @@ def main():
 
     style_extractor = vgg_layers(style_layers)
     style_outputs = style_extractor(style_image*255)
-    
-    for name, output in zip(style_layers, style_outputs):
-        print(name)
-        print("  shape: ", output.numpy().shape)
-        print("  min: ", output.numpy().min())
-        print("  max: ", output.numpy().max())
-        print("  mean: ", output.numpy().mean())
-        print()
 
     extractor = StyleContentModel(style_layers, content_layers)
     results = extractor(tf.constant(content_image))
@@ -178,7 +162,7 @@ def main():
     style_weight=1e-2
     content_weight=1e4    
     epochs = 10
-    steps_per_epoch = 100
+    steps_per_epoch = 10
     
     step = 0
     for n in range(epochs):
@@ -190,11 +174,25 @@ def main():
                        image)
             print(".", end='')
         display.clear_output(wait=True)
-        imshow(image.read_value())
-        plt.title("Train step: {}".format(step))
-        plt.show()
+    return image.read_value()
 
-    return None
+def main():
+    content_path = '/home/thomhaa/Documents/databases/style_transfer/whale/01-whale-gallery.ngsversion.1552406309198.adapt.1900.1.jpg'
+    style_path = '/home/thomhaa/Documents/databases/style_transfer/whale/1280px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg'
 
+    content_image = load_img(content_path)
+    style_image = load_img(style_path)
+    
+    plt.subplot(1,2,1)
+    imshow(content_image, 'Content Image')
+
+    plt.subplot(1,2,2)
+    imshow(style_image, 'Style Image')
+    plt.show()
+    
+    image = makeImg(content_path, style_path)
+    imshow(image)
+    plt.show()
+    
 if __name__ == "__main__":
     main()
